@@ -1,0 +1,100 @@
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(0, 255, 235, 0.6);
+}
+
+.logo-icon {
+  font-size: 1.85rem;
+  color: #00ffeb;
+  filter: drop-shadow(0 0 8px rgba(0, 255, 235, 0.6));
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+}
+
+.nav-links a {
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: var(--transition);
+}
+
+.nav-links a:hover {
+  color: var(--primary);
+}
+
+@media (max-width: 768px) {
+  .nav-links {
+    display: none;
+    /* Hide on mobile for MVP */
+  }
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.hamburger-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 1.45rem;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: var(--transition);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+}
+
+.hamburger-btn:hover {
+  color: var(--primary-light);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.hamburger-badge {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  background-color: var(--primary-light);
+  color: #0f172a;
+  font-size: 0.625rem;
+  font-weight: 700;
+  min-width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  box-shadow: 0 0 8px rgba(20, 184, 166, 0.6);
+  animation: pulse 2s infinite ease-in-out;
+}

@@ -1,0 +1,209 @@
+/* ── Container ─────────────────────────────────────── */
+.result-card-container {
+  background-color: var(--surface);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+/* ── Header ────────────────────────────────────────── */
+.result-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem;
+  background-color: rgba(20, 184, 166, 0.1);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-icon { font-size: 3rem; }
+.icon-high   { color: var(--error); }
+.icon-low    { color: var(--success); }
+
+.header-content h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Severity Badge ────────────────────────────────── */
+.severity-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.severity-badge.high   { background-color: rgba(239,68,68,0.2);   color: var(--error);   }
+.severity-badge.medium { background-color: rgba(245,158,11,0.2);  color: var(--warning); }
+.severity-badge.low    { background-color: rgba(16,185,129,0.2);  color: var(--success); }
+
+/* ── Body ──────────────────────────────────────────── */
+.result-body { padding: 2rem; }
+
+.info-section { margin-bottom: 2.5rem; }
+
+.info-section h3 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--primary-light);
+}
+
+.inline-icon { color: var(--primary); }
+
+/* ── Tools ─────────────────────────────────────────── */
+.tools-list { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+
+.tool-chip {
+  background-color: var(--background);
+  color: var(--text-main);
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid var(--border);
+}
+
+/* ── Action Plan heading ───────────────────────────── */
+.action-plan-section h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--primary-light);
+}
+
+/* ── 2-column grid ─────────────────────────────────── */
+.steps-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+/* ── Step Card ─────────────────────────────────────── */
+.step-card {
+  background-color: #0d1f2d;
+  border: 1px solid rgba(20, 184, 166, 0.25);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.step-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(20, 184, 166, 0.2);
+  border-color: rgba(20, 184, 166, 0.55);
+}
+
+/* ── Card Header Row ───────────────────────────────── */
+.step-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem 1.1rem 0.85rem;
+}
+
+/* Pentagon / arrow-chevron badge */
+.step-badge {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0d9488, #14b8a6);
+  clip-path: polygon(0 0, 78% 0, 100% 50%, 78% 100%, 0 100%);
+  width: 58px;
+  height: 58px;
+  padding-right: 10px;
+  line-height: 1;
+}
+
+.step-label {
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.85);
+  text-transform: uppercase;
+}
+
+.step-num {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
+}
+
+/* Title */
+.step-title {
+  flex: 1;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.25;
+  margin: 0;
+}
+
+/* Icon top-right */
+.step-icon-wrap {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: rgba(20, 184, 166, 0.12);
+  border: 1px solid rgba(20, 184, 166, 0.3);
+}
+
+.step-icon {
+  color: #14b8a6;
+  font-size: 1.1rem;
+}
+
+/* ── Divider ───────────────────────────────────────── */
+.step-divider {
+  height: 1.5px;
+  background: linear-gradient(to right, #14b8a6 0%, rgba(20, 184, 166, 0.08) 100%);
+  margin: 0 1.1rem;
+}
+
+/* ── Bullet Points ─────────────────────────────────── */
+.step-bullets {
+  list-style: none;
+  margin: 0;
+  padding: 0.9rem 1.1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.step-bullets li {
+  position: relative;
+  padding-left: 1.2rem;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.55;
+}
+
+.step-bullets li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.48em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #14b8a6;
+  flex-shrink: 0;
+}
+
+/* ── Responsive ────────────────────────────────────── */
+@media (max-width: 700px) {
+  .steps-container {
+    grid-template-columns: 1fr;
+  }
+}
