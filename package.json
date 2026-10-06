@@ -7,14 +7,14 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "node api-server.mjs"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
+    "@supabase/supabase-js": "^2.117.2",
     "@teachablemachine/image": "^0.8.5",
     "@tensorflow-models/mobilenet": "^2.1.1",
     "@tensorflow-models/qna": "^1.0.2",
-    "@tensorflow-models/speech-commands": "^0.5.4",
     "@tensorflow/tfjs": "^4.22.0",
     "axios": "^1.16.0",
     "clsx": "^2.1.1",

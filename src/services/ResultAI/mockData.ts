@@ -1,29 +1,8 @@
-export interface ActionStep {
-  step: number;
-  title: string;
-  instruction: string;
-  points?: string[];
-}
+import type { ActionStep, AnalysisResult, AnalyzeRequest } from './resultai';
+export type { ActionStep, AnalysisResult, AnalyzeRequest };
+export { analyzeCropIssue } from './resultai';
 
-export interface AnalysisResult {
-  problem: string;
-  severity: 'low' | 'medium' | 'high';
-  causes: string;
-  tools: string[];
-  actionPlan: ActionStep[];
-}
-
-import type { WeatherData } from '../WeatherAI/weatherai';
-
-export interface AnalyzeRequest {
-  type: string;
-  content?: string;
-  imageElement?: HTMLImageElement;
-  location?: { lat: number; lon: number };
-  weather?: WeatherData;
-}
-
-const mockResults: Record<string, AnalysisResult> = {
+export const mockResults: Record<string, AnalysisResult> = {
   default: {
     problem: 'Early Blight (Fungal Infection)',
     severity: 'high',
@@ -42,30 +21,4 @@ const mockResults: Record<string, AnalysisResult> = {
       { step: 10, title: 'Plan Crop Rotation', instruction: 'Practice crop rotation for the next growing season.', points: ['Do not plant the same crop family in the same bed next season.', 'Rotate with legumes or root vegetables to break disease cycles.', 'Amend soil with compost before replanting to restore health.'] }
     ]
   }
-};
-
-import { tfjsService } from './tfjsService';
-
-export const analyzeCropIssue = async (data: AnalyzeRequest): Promise<AnalysisResult> => {
-  console.log('Analyzing:', data);
-  
-  try {
-    if (data.type === 'text' && data.content) {
-      return await tfjsService.analyzeText(data.content, data);
-    } 
-    else if (data.type === 'photo' && data.imageElement) {
-      return await tfjsService.analyzeImage(data.imageElement, data);
-    }
-    else if (data.type === 'audio') {
-      // Mock progress callback
-      return await tfjsService.analyzeAudio((word) => console.log('Heard:', word));
-    }
-  } catch (error) {
-    console.error('TFJS Analysis Error:', error);
-    // Fallback to mock data if models fail to load or error occurs
-  }
-
-  // Simulate network delay for mock fallback
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-  return mockResults.default;
 };

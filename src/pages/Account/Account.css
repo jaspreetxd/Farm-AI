@@ -1,0 +1,52 @@
+.account-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 112px 1.25rem 4rem;
+  color: var(--text-main);
+}
+
+.account-shell { width: min(820px, 100%); margin: 0 auto; }
+.account-back-link { display: inline-flex; align-items: center; gap: .5rem; margin-bottom: 2rem; color: var(--text-muted); }
+.account-back-link:hover { color: var(--primary-light); }
+.account-heading { display: flex; align-items: center; gap: 1.25rem; margin-bottom: 2rem; }
+.account-avatar { display: grid; width: 68px; height: 68px; flex: 0 0 68px; place-items: center; border: 1px solid rgba(45, 212, 191, .3); border-radius: 22px; background: rgba(20, 184, 166, .15); color: var(--primary-light); font-size: 1.8rem; font-weight: 750; }
+.account-eyebrow { margin: 0 0 .25rem; color: var(--primary-light); font-size: .74rem; font-weight: 800; letter-spacing: .16em; }
+.account-heading h1 { margin: 0; font-size: clamp(1.8rem, 5vw, 2.6rem); }
+.account-heading p:last-child { margin: .4rem 0 0; color: var(--text-muted); }
+.account-card { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 1rem; margin-bottom: 1rem; padding: 1.5rem; border: 1px solid var(--border); border-radius: 20px; }
+.account-section-icon { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 14px; background: rgba(20, 184, 166, .12); color: var(--primary-light); font-size: 1.2rem; }
+.account-section-content { min-width: 0; }
+.account-section-content h2 { margin: .1rem 0 0; font-size: 1.12rem; }
+.account-section-hint { margin: .45rem 0 1.25rem; color: var(--text-muted); font-size: .9rem; line-height: 1.55; }
+.account-form { display: grid; gap: .6rem; }
+.account-form label { margin-top: .15rem; font-size: .88rem; font-weight: 650; }
+.account-form input { width: 100%; min-height: 48px; padding: .75rem .9rem; border: 1px solid var(--border); border-radius: 12px; outline: none; background: rgba(15, 23, 42, .55); color: var(--text-main); font: inherit; }
+.account-form input:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(45, 212, 191, .12); }
+.account-form-actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: .65rem; }
+.account-form-actions .btn { flex: 0 0 auto; }
+.account-verified, .account-quiet-note { display: inline-flex; align-items: center; gap: .35rem; color: var(--text-muted); font-size: .78rem; }
+.account-verified svg { color: var(--primary-light); }
+.account-current-email { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; margin-bottom: 1rem; padding: .85rem 1rem; border: 1px solid var(--border); border-radius: 12px; background: rgba(15, 23, 42, .3); font-size: .88rem; }
+.account-current-email span { color: var(--text-muted); }
+.account-current-email strong { overflow-wrap: anywhere; }
+.email-status { padding: .12rem .55rem; border: 1px solid rgba(245, 158, 11, .35); border-radius: 999px; color: #fbbf24; font-size: .72rem; font-style: normal; }
+.email-status.is-confirmed { border-color: rgba(45, 212, 191, .35); color: var(--primary-light); }
+.account-password-form { grid-template-columns: 1fr 1fr; column-gap: 1rem; }
+.account-password-form label, .account-password-form .account-form-actions { grid-column: 1 / -1; }
+.account-footer-note { margin: 1.5rem 0 0; color: var(--text-muted); text-align: center; font-size: .82rem; }
+
+@media (max-width: 600px) {
+  .account-page {
+    padding: calc(90px + env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+      calc(3rem + env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  }
+  .account-card { grid-template-columns: 1fr; padding: 1.15rem; }
+  .account-section-icon { width: 38px; height: 38px; }
+  .account-form-actions { align-items: flex-start; flex-direction: column; }
+  .account-form-actions .btn { width: 100%; }
+  .account-password-form { grid-template-columns: 1fr; }
+  .account-password-form label, .account-password-form .account-form-actions { grid-column: auto; }
+  .account-heading { align-items: flex-start; gap: .85rem; }
+  .account-avatar { width: 54px; height: 54px; flex-basis: 54px; border-radius: 17px; font-size: 1.45rem; }
+  .account-heading p:last-child { overflow-wrap: anywhere; }
+}

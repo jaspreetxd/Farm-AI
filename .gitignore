@@ -23,4 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 src/assets/backgroundvideos/*.mp4
+!src/assets/backgroundvideos/greenfield-720p.mp4
 .env
+.env.local

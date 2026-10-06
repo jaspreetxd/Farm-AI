@@ -37,6 +37,11 @@
   padding: 0;
 }
 
+html {
+  min-width: 320px;
+  scroll-padding-top: 5rem;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background-color: var(--background);
@@ -44,6 +49,21 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+
+#root,
+.app-container {
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-width: 0;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
 }
 
 a {
@@ -74,7 +94,7 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding-inline: clamp(.85rem, 3vw, 1.5rem);
 }
 
 /* Animations */
@@ -143,4 +163,12 @@ h1, h2, h3, h4, h5, h6 {
 .btn-outline:hover {
   background-color: var(--primary);
   color: white;
+}
+
+@media (max-width: 600px) {
+  .section-padding { padding-block: 3.75rem; }
+  .section-header { margin-bottom: 2rem; }
+  .section-header h2 { font-size: clamp(1.65rem, 7vw, 2.15rem); }
+  .section-header p { font-size: 1rem; }
+  .btn { padding: .7rem 1rem; font-size: .94rem; }
 }

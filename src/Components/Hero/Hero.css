@@ -1,5 +1,5 @@
 .hero {
-  padding: 8rem 0 4rem;
+  padding: clamp(7rem, 13vh, 8.5rem) 0 clamp(3rem, 7vh, 4.5rem);
   text-align: center;
   position: relative;
 }
@@ -28,7 +28,7 @@
 }
 
 .hero-title {
-  font-size: 3.5rem;
+  font-size: clamp(2.25rem, 6vw, 3.5rem);
   margin-bottom: 1.5rem;
   color: var(--text-main);
 }
@@ -67,8 +67,8 @@
 .blob-1 {
   top: -10%;
   left: -10%;
-  width: 400px;
-  height: 400px;
+  width: min(400px, 42vw);
+  height: min(400px, 42vw);
   background: #99f6e4;
   /* Teal 200 */
 }
@@ -76,14 +76,14 @@
 .blob-2 {
   bottom: -20%;
   right: -10%;
-  width: 300px;
-  height: 300px;
+  width: min(300px, 34vw);
+  height: min(300px, 34vw);
   background: #bbf7d0;
 }
 
 @media (max-width: 768px) {
   .hero-title {
-    font-size: 2.5rem;
+    font-size: clamp(2rem, 8vw, 2.7rem);
   }
 
   .hero-actions {
@@ -93,4 +93,14 @@
   .hero-actions .btn {
     width: 100%;
   }
+
+  .hero { padding-top: 7rem; }
+  .hero-subtitle { font-size: 1.05rem; }
+  .hero-badge { font-size: .78rem; }
+}
+
+@media (max-width: 380px) {
+  .hero-title { font-size: 1.9rem; }
+  .hero-subtitle { font-size: .98rem; }
+  .hero-badge { padding: .45rem .75rem; }
 }

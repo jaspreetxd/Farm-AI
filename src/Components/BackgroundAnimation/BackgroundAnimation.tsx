@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import video from '../../assets/backgroundvideos/greenfield.mp4';
+import video from '../../assets/backgroundvideos/greenfield-720p.mp4';
 import './BackgroundAnimation.css';
 
 const BackgroundAnimation = () => {

@@ -1,75 +1,32 @@
-# React + TypeScript + Vite
+# Agro Rakshak
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Agro Rakshak is a React and TypeScript crop support app. Farmers can describe symptoms or upload a crop photo. Image classification runs in the browser with the bundled Teachable Machine model; text and image diagnosis can use Groq or a local Ollama model.
 
-Currently, two official plugins are available:
+## Local setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Install dependencies with `npm install`.
+2. Copy `.env.example` to `.env.local` and fill in the Supabase project URL and anon/publishable key. These two Supabase values are intended for the browser; keep Row Level Security enabled and never put a service-role key in frontend variables.
+3. Run [`supabase/schema.sql`](supabase/schema.sql) in your Supabase SQL Editor. It creates the per-user history table and row-level access policies.
+4. To use Groq locally, put `GROQ_API_KEY=...` in `.env.local` or provide it in the server environment. This key is read only by the Node server and must not use a `VITE_` prefix.
+5. Add the local app URL (for example `http://localhost:5173/**`) to the Supabase Auth redirect URL allow list.
+6. Start the app with `npm run dev`.
 
-## React Compiler
+Vite serves the app and `/api/llm` on the same development address. Requests to `/ollama` are proxied to Ollama on port 11434. You can select Groq, Ollama, or automatic fallback in AI Engine settings.
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+Farmers create an account or sign in with email and password. Diagnosis history is stored in Supabase and protected by database policies so a signed-in user can only read or change their own rows. Existing anonymous browser history is not automatically assigned to the first account.
 
-Note: This will impact Vite dev & build performances.
+## Production
 
-## Expanding the ESLint configuration
+Run `npm run build`, then `npm start`. The Node server serves `dist` and `/api/llm` on the same origin. Set `GROQ_API_KEY` and, if required by the hosting platform, `PORT` in the server environment. Keep the Groq key server-side. Configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` for the frontend build; never use a Supabase service-role key in the browser.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Deploying to Vercel
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+The repository includes a Vercel Node Function at `/api/llm` and a rewrite for client-side routes. Import the repository into Vercel and add `GROQ_API_KEY`, `VITE_SUPABASE_URL`, and `VITE_SUPABASE_ANON_KEY` under the project's Environment Variables for the Production environment (add Preview/Development values only if those deployments should work too). The two `VITE_` values are public browser configuration; never add a Groq key or Supabase service-role key with a `VITE_` prefix. Redeploy after changing environment variables. In Supabase Auth settings, add the deployed Vercel URL to the Site URL and redirect URL allow list.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+The AI endpoint verifies each caller's Supabase access token with Supabase Auth. The server uses only the public anon/publishable key for that verification; it does not need a service-role key. It also enforces per-IP and per-user request windows, a per-user daily cap, bounded request sizes, and concurrent-request limits. These counters are process-local and reset between serverless invocations or instances, so they are a best-effort safeguard on Vercel; use a shared store (such as Redis) for durable, cross-instance limits before public traffic grows.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Diagnosis limits
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Photo diagnoses are withheld when confidence is below 65%, when the top two model classes are less than 15 percentage points apart, or when the class label is unrecognized. These are conservative defaults, not calibrated guarantees. Confirm important treatment decisions with a local agricultural expert and follow local product labels and guidance.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+The app accepts crop photos and text descriptions. Diagnosis history syncs across devices after sign-in; sign-out clears it from the active view.

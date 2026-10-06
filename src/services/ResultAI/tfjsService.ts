@@ -1,8 +1,9 @@
 import * as tf from '@tensorflow/tfjs';
 import * as tmImage from '@teachablemachine/image';
 import * as qna from '@tensorflow-models/qna';
-import * as speechCommands from '@tensorflow-models/speech-commands';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { llmService } from '../LLMService/llmService';
+import { AGRICULTURE_SCOPE_MESSAGE, isAgricultureQuery } from '../../../agriculture-scope.js';
+import { isSafePlantModelMatch, makeDiagnosisSafe } from './diagnosisSafety';
 import type { AnalysisResult, AnalyzeRequest } from './mockData';
 
 await tf.ready();
@@ -18,154 +19,139 @@ Root Rot causes wilting, yellowing leaves, and mushy, brown roots. It is caused 
 
 
 
+import { parsePlantLabel, getPlantOfflineDiagnosis, PLANT_KNOWLEDGE_BASE } from './resultai';
+
+let cachedTMModel: tmImage.CustomMobileNet | null = null;
+let activeModelPath: string | null = null;
+
+async function loadCustomTMModel(): Promise<tmImage.CustomMobileNet> {
+  if (cachedTMModel) {
+    return cachedTMModel;
+  }
+
+  try {
+    const model = await tmImage.load('/tm-my-image-model/model.json', '/tm-my-image-model/metadata.json');
+    cachedTMModel = model;
+    activeModelPath = '/tm-my-image-model';
+    return model;
+  } catch {
+    const fallbackModel = await tmImage.load('/tm-model/model.json', '/tm-model/metadata.json');
+    cachedTMModel = fallbackModel;
+    activeModelPath = '/tm-model';
+    return fallbackModel;
+  }
+}
+
 export const tfjsService = {
+  getModelPath: () => activeModelPath,
   analyzeImage: async (imageElement: HTMLImageElement, requestData?: AnalyzeRequest): Promise<AnalysisResult> => {
     try {
-      console.log('Loading Custom TM model...');
-      const modelURL = '/tm-model/model.json';
-      const metadataURL = '/tm-model/metadata.json';
-      
-      const model = await tmImage.load(modelURL, metadataURL);
-      console.log('Model loaded. Classifying image...');
+      const model = await loadCustomTMModel();
       
       const predictions = await model.predict(imageElement);
-      console.log('Predictions:', predictions);
       
       predictions.sort((a, b) => b.probability - a.probability);
       const topPrediction = predictions[0];
+      const runnerUp = predictions[1];
+      if (!topPrediction) {
+        throw new Error('The image model returned no predictions.');
+      }
       
-      const className = topPrediction.className;
-      const isHealthy = className.toLowerCase().includes('healthy');
-      let aiResult: Partial<AnalysisResult> | null = null;
-      
-      const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
-      
-      if (!geminiApiKey && !isHealthy) {
+      const parsed = parsePlantLabel(topPrediction.className);
+      const { plantName, status, isHealthy, displayName } = parsed;
+      const confidence = topPrediction.probability;
+      const margin = runnerUp ? confidence - runnerUp.probability : 1;
+      const confPercent = (confidence * 100).toFixed(1);
+
+      // Avoid giving crop-specific advice when the model is unsure or two
+      // classes are too close to distinguish reliably.
+      if (
+        status === 'Unknown' ||
+        !PLANT_KNOWLEDGE_BASE[plantName] ||
+        !isSafePlantModelMatch(plantName, confidence, margin)
+      ) {
         return {
-          problem: `Identified: ${className} (${(topPrediction.probability * 100).toFixed(1)}% confidence)`,
-          severity: 'high',
-          causes: '⚠️ Gemini API Key is missing! You need to add your API key to the .env file for the AI to generate a diagnosis.',
-          tools: ['Add VITE_GEMINI_API_KEY to .env', 'Restart Server'],
+          problem: 'Could not identify the crop condition confidently',
+          severity: 'low',
+          causes: `The closest model match was ${displayName} at ${confPercent}% confidence. This is not enough to recommend a treatment.`,
+          tools: [],
           actionPlan: [
-            { step: 1, title: 'Model Result', instruction: `Model identified: ${className}` },
-            { step: 2, title: 'Create .env File', instruction: 'Create a .env file in the root of your project.' },
-            { step: 3, title: 'Add API Key', instruction: 'Add your Gemini API key: VITE_GEMINI_API_KEY=your_key' },
-            { step: 4, title: 'Restart Server', instruction: 'Restart your dev server to see the magic!' }
-          ]
+            { step: 1, title: 'Retake Photo', instruction: 'Take a sharp, well-lit close-up of the affected leaves, avoiding shadows and busy backgrounds.' },
+            { step: 2, title: 'Describe Symptoms', instruction: 'Add the crop name and describe where symptoms appear, their color, and when they began.' },
+            { step: 3, title: 'Check Locally', instruction: 'If the crop is worsening, ask a local agricultural extension worker to inspect it before applying treatment.' }
+          ],
+          plantName,
+          status: 'Unknown',
+          confidence
         };
       }
-      if (!isHealthy && geminiApiKey) {
-        try {
-          console.log('Fetching dynamic diagnosis from Gemini for:', className);
-          const genAI = new GoogleGenerativeAI(geminiApiKey);
-          const genModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-          const prompt = `A vision model classified a crop image as "${className}" with ${(topPrediction.probability * 100).toFixed(1)}% confidence. 
-Provide a JSON response representing an agricultural analysis result.
-Do not use markdown blocks, just return the raw JSON object.
-Format:
-{
-  "severity": "low", "medium", or "high",
-  "causes": "Detailed 1-2 sentence explanation of what causes this disease and how it happens.",
-  "tools": ["Tool 1", "Tool 2", "Tool 3"],
-  "actionPlan": [
-    { "step": 1, "title": "Short Step Name", "instruction": "One sentence summary", "points": ["Detailed bullet 1", "Detailed bullet 2", "Detailed bullet 3"] },
-    { "step": 2, "title": "Short Step Name", "instruction": "One sentence summary", "points": ["Detailed bullet 1", "Detailed bullet 2", "Detailed bullet 3"] }
-  ]
-}
-Each step MUST have:
-- "title": 2-4 words (e.g. "Inspect Leaves", "Apply Fungicide")
-- "instruction": one short summary sentence
-- "points": an array of 3-4 specific, actionable bullet points expanding on the step
-If the disease is generic (like 'Mango diseased'), infer common diseases for that plant and give a practical, highly detailed action plan with a minimum of 10 steps.`;
 
-          let contextPrompt = prompt;
-          if (requestData?.location && requestData?.weather) {
-            contextPrompt += `\n\nCONTEXT: The user is currently at latitude ${requestData.location.lat}, longitude ${requestData.location.lon}. The current weather temperature is ${requestData.weather.temperature}°C, wind speed is ${requestData.weather.windspeed} km/h, and WMO weather code is ${requestData.weather.weathercode}. Please tailor your steps and tool recommendations considering these exact current weather conditions (e.g. mention delaying spraying if windy, or watering if hot).`;
-          }
+      // Base offline diagnosis curated for the model crops
+      const offlineResult = getPlantOfflineDiagnosis(
+        plantName,
+        isHealthy,
+        confidence,
+        requestData?.weather
+      );
 
-          const result = await genModel.generateContent(contextPrompt);
-          const text = result.response.text();
-          const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
-          aiResult = JSON.parse(cleanJson);
-        } catch (error) {
-          console.error("Gemini AI fallback failed:", error);
-        }
+      // If plant is healthy, return the verified healthy diagnosis immediately
+      if (isHealthy) {
+        return makeDiagnosisSafe(offlineResult);
       }
+
+      // Query Groq or Ollama LLM for deep agricultural diagnosis
+      let aiResult: Partial<AnalysisResult> | null = null;
+      try {
+        aiResult = await llmService.generateCropDiagnosis({
+          plantName,
+          status,
+          confidence,
+          requestData
+        });
+      } catch { /* LLM unavailable, using offline diagnosis */ }
       
       const entryToUse = aiResult || {};
-      return {
-        problem: `Identified: ${className} (${(topPrediction.probability * 100).toFixed(1)}% confidence)`,
-        severity: entryToUse.severity || (isHealthy ? 'low' : (topPrediction.probability > 0.6 ? 'high' : 'medium')),
-        causes: entryToUse.causes || (isHealthy ? 'The plant appears healthy based on our visual analysis.' : 'This specific disease signature was detected by our trained AI model.'),
-        tools: entryToUse.tools || (isHealthy ? ['Observation'] : ['Targeted Treatment', 'Pruning shears', 'Appropriate fungicide/pesticide']),
-        actionPlan: entryToUse.actionPlan || (isHealthy ? [
-          { step: 1, title: 'Model Result', instruction: `Model identified: ${className}` },
-          { step: 2, title: 'Maintain Routine', instruction: 'Continue regular watering and nutrient schedules.' },
-          { step: 3, title: 'Periodic Monitoring', instruction: 'Monitor periodically for any changes.' }
-        ] : [
-          { step: 1, title: 'Model Result', instruction: `Model identified: ${className}` },
-          { step: 2, title: 'Isolate Plant', instruction: 'Isolate the affected plant if possible to prevent spread.' },
-          { step: 3, title: 'Seek Expert Advice', instruction: 'Research specific treatments for the identified issue or consult a local agronomist.' }
-        ])
-      };
+      return makeDiagnosisSafe({
+        problem: entryToUse.causes
+          ? `Identified: ${displayName} (${confPercent}% confidence)`
+          : offlineResult.problem,
+        severity: entryToUse.severity || offlineResult.severity,
+        causes: entryToUse.causes || offlineResult.causes,
+        tools: entryToUse.tools && entryToUse.tools.length > 0 ? entryToUse.tools : offlineResult.tools,
+        actionPlan: entryToUse.actionPlan && entryToUse.actionPlan.length > 0 ? entryToUse.actionPlan : offlineResult.actionPlan,
+        plantName,
+        status,
+        confidence
+      });
     } catch (error) {
       console.error('Error in image analysis:', error);
-      throw new Error('Failed to analyze image.');
+      throw new Error('Failed to analyze image.', { cause: error });
     }
   },
   analyzeText: async (question: string, requestData?: AnalyzeRequest): Promise<AnalysisResult> => {
+    if (!isAgricultureQuery(question)) {
+      throw new Error(AGRICULTURE_SCOPE_MESSAGE);
+    }
     try {
-      const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
-      if (geminiApiKey) {
-        console.log('Using Gemini for text analysis...');
-        try {
-          const genAI = new GoogleGenerativeAI(geminiApiKey);
-          const genModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-          const prompt = `A farmer has described the following issue with their crop: "${question}".
-Provide a JSON response representing an agricultural analysis result.
-Do not use markdown blocks, just return the raw JSON object.
-Format:
-{
-  "problem": "Brief name of the most likely disease or pest",
-  "severity": "low", "medium", or "high",
-  "causes": "Detailed 1-2 sentence explanation of what causes this issue based on the description.",
-  "tools": ["Tool 1", "Tool 2", "Tool 3"],
-  "actionPlan": [
-    { "step": 1, "title": "Short Step Name", "instruction": "One sentence summary", "points": ["Detailed bullet 1", "Detailed bullet 2", "Detailed bullet 3"] },
-    { "step": 2, "title": "Short Step Name", "instruction": "One sentence summary", "points": ["Detailed bullet 1", "Detailed bullet 2", "Detailed bullet 3"] }
-  ]
-}
-Each step MUST have:
-- "title": 2-4 words (e.g. "Inspect Leaves", "Apply Fungicide")
-- "instruction": one short summary sentence
-- "points": an array of 3-4 specific, actionable bullet points expanding on the step
-Give a practical, highly detailed, actionable action plan with a minimum of 10 steps to treat or manage the issue.`;
-          
-          let contextPrompt = prompt;
-          if (requestData?.location && requestData?.weather) {
-            contextPrompt += `\n\nCONTEXT: The user is currently at latitude ${requestData.location.lat}, longitude ${requestData.location.lon}. The current weather temperature is ${requestData.weather.temperature}°C, wind speed is ${requestData.weather.windspeed} km/h, and WMO weather code is ${requestData.weather.weathercode}. Please tailor your steps and tool recommendations considering these exact current weather conditions.`;
-          }
-          
-          const result = await genModel.generateContent(contextPrompt);
-          const text = result.response.text();
-          const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
-          const aiResult = JSON.parse(cleanJson);
-          return aiResult as AnalysisResult;
-        } catch (error) {
-          console.error("Gemini text analysis failed, falling back to QnA model:", error);
+      // 1. Try Groq or Ollama LLM first
+      try {
+        const llmResult = await llmService.generateTextAnalysis(question, requestData);
+        if (llmResult) {
+          return makeDiagnosisSafe(llmResult);
         }
+      } catch (error) {
+        if (error instanceof Error && error.message === AGRICULTURE_SCOPE_MESSAGE) throw error;
+        /* LLM unavailable, falling back to local QnA */
       }
 
-      console.log('Loading QnA model...');
+      // 2. Fall back to local TensorFlow QnA model
       const model = await qna.load();
-      console.log('Model loaded. Finding answers...');
       
       const answers = await model.findAnswers(question, CROP_KNOWLEDGE_BASE);
-      console.log('Answers:', answers);
       
       if (answers && answers.length > 0) {
         const bestAnswer = answers[0];
-        return {
+        return makeDiagnosisSafe({
           problem: `Based on description: ${bestAnswer.text}`,
           severity: 'medium',
           causes: 'Extracted from crop knowledge base using QnA model.',
@@ -174,83 +160,30 @@ Give a practical, highly detailed, actionable action plan with a minimum of 10 s
             { step: 1, title: 'Review Findings', instruction: 'Review the extracted information.' },
             { step: 2, title: 'Confidence Score', instruction: `QnA confidence score: ${(bestAnswer.score).toFixed(2)}` }
           ]
-        };
+        });
       } else {
-        return {
-          problem: 'No specific disease identified from the description.',
+        const symptomQuestion = /\b(?:yellow|yellowing|spot|spots|wilt|wilting|rot|rotting|curl|curling|hole|holes|mold|mould|blight|lesion|stunted|dying|disease|pest|insect|fruit drop|leaf drop)\w*\b/i.test(question);
+        return makeDiagnosisSafe({
+          problem: symptomQuestion
+            ? 'More details are needed to assess this crop problem.'
+            : 'I need a little more context to give crop-specific guidance.',
           severity: 'low',
-          causes: 'The text did not match any known patterns in our database.',
-          tools: ['Visual Inspection'],
+          causes: symptomQuestion
+            ? 'A symptom such as yellowing can have several causes, including watering, soil, weather, pests, or disease. This description alone is not enough to identify which one.'
+            : 'I could not produce a specific answer from the information provided. Fruit and vegetable questions are welcome; include the crop and what you want to know or solve.',
+          tools: ['Crop and symptom notes', 'Visual inspection'],
           actionPlan: [
-            { step: 1, title: 'Add More Detail', instruction: 'Provide more detailed symptoms.' },
-            { step: 2, title: 'Try Photo Upload', instruction: 'Try uploading a photo instead.' }
+            { step: 1, title: 'Name the Crop', instruction: 'Share the fruit or vegetable name, variety if known, and its growth stage.' },
+            { step: 2, title: 'Describe the Issue', instruction: symptomQuestion
+              ? 'Say which leaves or fruit are affected, what the symptoms look like, and when they began.'
+              : 'Describe your goal or question, and include your region and growing conditions if relevant.' },
+            { step: 3, title: 'Add a Photo', instruction: 'For a plant health problem, upload a clear close-up and one photo of the whole plant.' }
           ]
-        };
+        });
       }
     } catch (error) {
       console.error('Error in text analysis:', error);
-      throw new Error('Failed to analyze text.');
+      throw new Error('Failed to analyze text.', { cause: error });
     }
   },
-  analyzeAudio: async (onProgress: (word: string) => void): Promise<AnalysisResult> => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        console.log('Loading Speech Commands model...');
-        const recognizer = speechCommands.create('BROWSER_FFT');
-        await recognizer.ensureModelLoaded();
-        console.log('Model loaded. Listening...');
-
-        const words = recognizer.wordLabels();
-        console.log('Recognizable words:', words);
-
-        recognizer.listen(async (result) => {
-          const scores = result.scores as Float32Array;
-          const maxScore = Math.max(...Array.from(scores));
-          const maxScoreIndex = scores.indexOf(maxScore);
-          const recognizedWord = words[maxScoreIndex];
-          
-          console.log(`Recognized: ${recognizedWord} (${maxScore.toFixed(2)})`);
-          onProgress(recognizedWord);
-
-          if (maxScore > 0.8 && recognizedWord !== 'background_noise') {
-            recognizer.stopListening();
-            
-            resolve({
-              problem: `Speech Command Detected: "${recognizedWord.toUpperCase()}"`,
-              severity: 'low',
-              causes: 'Recognized via Audio Microphone input using Speech Commands model.',
-              tools: ['Microphone'],
-              actionPlan: [
-                { step: 1, title: 'Command Detected', instruction: `You said: ${recognizedWord}` },
-                { step: 2, title: 'About This Feature', instruction: 'This is a demonstration of Speech Command recognition.' }
-              ]
-            });
-          }
-        }, {
-          probabilityThreshold: 0.75,
-          invokeCallbackOnNoiseAndUnknown: false,
-          overlapFactor: 0.5
-        });
-        setTimeout(() => {
-          if (recognizer.isListening()) {
-            recognizer.stopListening();
-            resolve({
-              problem: 'No clear speech command detected.',
-              severity: 'low',
-              causes: 'Timeout reached while listening.',
-              tools: ['Microphone'],
-              actionPlan: [
-                { step: 1, title: 'Try Again', instruction: 'Please try again and speak clearly.' },
-                { step: 2, title: 'Supported Commands', instruction: 'Use words like "up", "down", "yes", "no".' }
-              ]
-            });
-          }
-        }, 10000);
-
-      } catch (error) {
-        console.error('Error in audio analysis:', error);
-        reject(new Error('Failed to analyze audio.'));
-      }
-    });
-  }
 };

@@ -13,7 +13,7 @@ const Hero = () => {
           Diagnose Crop Issues in <span className="text-gradient">Seconds</span>
         </h1>
         <p className="hero-subtitle">
-          Empowering farmers with instant, accurate AI guidance. Upload a photo, type a problem, or record an audio clip to get a complete action plan to save your crops.
+          Empowering farmers with AI guidance. Upload a crop photo or describe the symptoms to get a practical action plan.
         </p>
         <div className="hero-actions">
           <a href="#input-section" className="btn btn-primary">

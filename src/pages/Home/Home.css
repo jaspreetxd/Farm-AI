@@ -41,7 +41,7 @@
 /* Features Grid */
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
   gap: 2rem;
 }
 
@@ -71,4 +71,11 @@
 
 .feature-card p {
   color: var(--text-muted);
+}
+
+@media (max-width: 600px) {
+  .features-grid { gap: 1rem; }
+  .feature-card { padding: 1.5rem 1.25rem; }
+  .feature-card h3 { font-size: 1.25rem; }
+  .result-wrapper { margin-top: 2rem; }
 }

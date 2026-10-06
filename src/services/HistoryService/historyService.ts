@@ -3,7 +3,7 @@ import type { AnalysisResult } from '../ResultAI/mockData';
 export interface HistoryItem {
   id: string;
   timestamp: number;
-  type: 'text' | 'photo' | 'audio' | 'video';
+  type: 'text' | 'photo';
   queryText: string;
   thumbnail?: string;
   result: AnalysisResult;

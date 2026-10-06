@@ -1,92 +1,26 @@
 .footer {
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  color: white;
-  padding: 4rem 0 1rem;
-  margin-top: 4rem;
+  margin-top: 3rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid rgba(148, 163, 184, .12);
+  background: rgba(10, 17, 29, .58);
+  color: #cbd5e1;
 }
 
 .footer-container {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 3rem;
-  margin-bottom: 3rem;
-}
-
-.footer-logo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
+  justify-content: space-between;
+  gap: 1.5rem;
 }
 
-.footer-tagline {
-  color: #ccfbf1; /* Teal 100 */
-  margin-bottom: 1.5rem;
-  max-width: 300px;
-}
+.footer-brand { display: flex; align-items: center; gap: 1rem; min-width: 0; }
+.footer-logo { display: inline-flex; align-items: center; gap: .4rem; color: #f1f5f9; font-size: .98rem; font-weight: 700; white-space: nowrap; }
+.footer-logo .logo-icon { color: #2dd4bf; font-size: 1.2rem; }
+.footer-tagline { margin: 0; color: #94a3b8; font-size: .8rem; }
+.footer-bottom { flex: 0 0 auto; margin: 0; color: #8391a5; font-size: .76rem; }
 
-.social-links {
-  display: flex;
-  gap: 1rem;
-}
-
-.social-links a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.1);
-  transition: var(--transition);
-  font-size: 1.25rem;
-}
-
-.social-links a:hover {
-  background-color: var(--primary-light);
-  transform: translateY(-2px);
-}
-
-.footer-links {
-  display: flex;
-  justify-content: flex-end;
-  gap: 4rem;
-}
-
-.link-group h4 {
-  color: white;
-  margin-bottom: 1rem;
-}
-
-.link-group a {
-  display: block;
-  color: #ccfbf1;
-  margin-bottom: 0.5rem;
-  transition: var(--transition);
-}
-
-.link-group a:hover {
-  color: white;
-}
-
-.footer-bottom {
-  text-align: center;
-  padding-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  color: #99f6e4; /* Teal 200 */
-  font-size: 0.875rem;
-}
-
-@media (max-width: 768px) {
-  .footer-container {
-    grid-template-columns: 1fr;
-  }
-  .footer-links {
-    justify-content: flex-start;
-  }
+@media (max-width: 640px) {
+  .footer-container { align-items: flex-start; flex-direction: column; gap: .7rem; }
+  .footer-brand { align-items: flex-start; flex-direction: column; gap: .2rem; }
+  .footer-tagline { max-width: 36ch; }
 }

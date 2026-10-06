@@ -1,19 +1,21 @@
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import Hero from '../../Components/Hero/Hero';
 import InputForm from '../../Components/InputForm/InputForm';
 import ResultCard from '../../Components/ResultCard/ResultCard';
 import Loading from '../../Components/Loading/Loading';
-import { analyzeCropIssue } from '../../services/ResultAI/mockData';
+import { analyzeCropIssue } from '../../services/ResultAI/resultai';
 import { fetchWeather } from '../../services/WeatherAI/weatherai';
 import { generateThumbnail } from '../../services/HistoryService/historyService';
-import type { AnalysisResult, AnalyzeRequest } from '../../services/ResultAI/mockData';
+import { AGRICULTURE_SCOPE_MESSAGE, isAgricultureQuery } from '../../../agriculture-scope.js';
+import type { AnalysisResult, AnalyzeRequest } from '../../services/ResultAI/resultai';
 import './Home.css';
 
 interface HomeProps {
   result: AnalysisResult | null;
   setResult: (result: AnalysisResult | null) => void;
   onAddHistory: (
-    type: 'text' | 'photo' | 'audio' | 'video',
+    type: 'text' | 'photo',
     queryText: string,
     result: AnalysisResult,
     thumbnail?: string
@@ -24,6 +26,11 @@ const Home = ({ result, setResult, onAddHistory }: HomeProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleAnalyze = async (data: AnalyzeRequest) => {
+    if (data.type === 'text' && !isAgricultureQuery(data.content || '')) {
+      setResult(null);
+      toast.error(AGRICULTURE_SCOPE_MESSAGE);
+      return;
+    }
     setIsLoading(true);
     setResult(null);
     
@@ -67,15 +74,12 @@ const Home = ({ result, setResult, onAddHistory }: HomeProps) => {
         if (imageEl) {
           thumbnail = generateThumbnail(imageEl);
         }
-      } else if (data.type === 'audio') {
-        queryText = 'Audio Command';
-      } else if (data.type === 'video') {
-        queryText = 'Video Analysis';
       }
 
-      onAddHistory(data.type as any, queryText, response, thumbnail);
+      onAddHistory(data.type as 'text' | 'photo', queryText, response, thumbnail);
     } catch (error) {
       console.error(error);
+      toast.error(error instanceof Error ? error.message : 'Analysis failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -90,7 +94,7 @@ const Home = ({ result, setResult, onAddHistory }: HomeProps) => {
         <div className="container">
           <div className="section-header text-center">
             <h2>Describe the Problem</h2>
-            <p>Upload a photo of the affected plant, or describe the symptoms below.</p>
+            <p>This assistant only answers farming and agriculture questions. Ask about crops, plants, livestock, soil, irrigation, farm inputs, machinery, or upload an affected plant photo.</p>
           </div>
           
           <div className="diagnosis-container">

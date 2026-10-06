@@ -22,7 +22,7 @@ const ResultCard = ({ data }: ResultCardProps) => {
       {/* Header Summary */}
       <div className="result-header glass">
         <div className="header-icon">
-          {data.severity === 'high' ? (
+          {data.status === 'Unknown' || data.severity === 'high' ? (
             <FiAlertTriangle className="icon-high" />
           ) : (
             <FiCheckCircle className="icon-low" />
@@ -30,11 +30,21 @@ const ResultCard = ({ data }: ResultCardProps) => {
         </div>
         <div className="header-content">
           <h2>{data.problem}</h2>
-          <span className={`severity-badge ${data.severity}`}>{data.severity} Severity</span>
+          <span className={`severity-badge ${data.status === 'Unknown' ? 'medium' : data.severity}`}>
+            {data.status === 'Unknown' ? 'Uncertain result' : `${data.severity} Severity`}
+          </span>
+          {typeof data.confidence === 'number' && (
+            <span className="confidence-label">Model confidence: {(data.confidence * 100).toFixed(1)}%</span>
+          )}
         </div>
       </div>
 
       <div className="result-body">
+        {data.status === 'Unknown' && (
+          <p className="uncertain-notice" role="status">
+            No treatment is recommended from this image. Retake the photo or describe the symptoms for another assessment.
+          </p>
+        )}
         {/* Likely Causes */}
         <div className="info-section">
           <h3>Likely Causes</h3>
@@ -65,7 +75,7 @@ const ResultCard = ({ data }: ResultCardProps) => {
                     .map(s => s.trim());
 
               return (
-                <div key={step.step || index} className="step-card">
+                <div key={`step-${index}-${step.step ?? index}`} className="step-card">
                   {/* Card Header */}
                   <div className="step-card-header">
                     <div className="step-badge">
@@ -84,7 +94,7 @@ const ResultCard = ({ data }: ResultCardProps) => {
                   {/* Bullet Points */}
                   <ul className="step-bullets">
                     {bullets.map((point, pi) => (
-                      <li key={pi}>{point}</li>
+                      <li key={`step-${index}-point-${pi}`}>{point}</li>
                     ))}
                   </ul>
                 </div>

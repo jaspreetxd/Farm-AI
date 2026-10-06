@@ -16,13 +16,15 @@
   border-bottom: 1px solid var(--border);
 }
 
-.header-icon { font-size: 3rem; }
-.icon-high   { color: var(--error); }
-.icon-low    { color: var(--success); }
+.result-header .header-icon { flex: 0 0 auto; font-size: 3rem; line-height: 1; }
+.result-header .icon-high   { color: var(--error); }
+.result-header .icon-low    { color: var(--success); }
 
-.header-content h2 {
-  font-size: 1.5rem;
+.result-header .header-content { min-width: 0; }
+.result-header .header-content h2 {
+  font-size: clamp(1.15rem, 3vw, 1.5rem);
   margin-bottom: 0.5rem;
+  overflow-wrap: anywhere;
 }
 
 /* ── Severity Badge ────────────────────────────────── */
@@ -40,6 +42,22 @@
 
 /* ── Body ──────────────────────────────────────────── */
 .result-body { padding: 2rem; }
+
+.confidence-label {
+  display: inline-block;
+  margin-left: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.uncertain-notice {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 0.75rem;
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--text);
+}
 
 .info-section { margin-bottom: 2.5rem; }
 
@@ -75,14 +93,14 @@
 }
 
 /* ── 2-column grid ─────────────────────────────────── */
-.steps-container {
+.result-card-container .steps-container {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1.25rem;
 }
 
 /* ── Step Card ─────────────────────────────────────── */
-.step-card {
+.result-card-container .step-card {
   background-color: #0d1f2d;
   border: 1px solid rgba(20, 184, 166, 0.25);
   border-radius: 12px;
@@ -92,14 +110,14 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-.step-card:hover {
+.result-card-container .step-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 28px rgba(20, 184, 166, 0.2);
   border-color: rgba(20, 184, 166, 0.55);
 }
 
 /* ── Card Header Row ───────────────────────────────── */
-.step-card-header {
+.result-card-container .step-card-header {
   display: flex;
   align-items: center;
   gap: 0.85rem;
@@ -107,7 +125,7 @@
 }
 
 /* Pentagon / arrow-chevron badge */
-.step-badge {
+.result-card-container .step-badge {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -121,7 +139,7 @@
   line-height: 1;
 }
 
-.step-label {
+.result-card-container .step-label {
   font-size: 0.55rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -129,7 +147,7 @@
   text-transform: uppercase;
 }
 
-.step-num {
+.result-card-container .step-num {
   font-size: 1.75rem;
   font-weight: 900;
   color: #ffffff;
@@ -137,17 +155,19 @@
 }
 
 /* Title */
-.step-title {
+.result-card-container .step-title {
   flex: 1;
+  min-width: 0;
   font-size: 1.05rem;
   font-weight: 800;
   color: #ffffff;
   line-height: 1.25;
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 /* Icon top-right */
-.step-icon-wrap {
+.result-card-container .step-icon-wrap {
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -159,20 +179,20 @@
   border: 1px solid rgba(20, 184, 166, 0.3);
 }
 
-.step-icon {
+.result-card-container .step-icon {
   color: #14b8a6;
   font-size: 1.1rem;
 }
 
 /* ── Divider ───────────────────────────────────────── */
-.step-divider {
+.result-card-container .step-divider {
   height: 1.5px;
   background: linear-gradient(to right, #14b8a6 0%, rgba(20, 184, 166, 0.08) 100%);
   margin: 0 1.1rem;
 }
 
 /* ── Bullet Points ─────────────────────────────────── */
-.step-bullets {
+.result-card-container .step-bullets {
   list-style: none;
   margin: 0;
   padding: 0.9rem 1.1rem 1.1rem;
@@ -181,7 +201,7 @@
   gap: 0.55rem;
 }
 
-.step-bullets li {
+.result-card-container .step-bullets li {
   position: relative;
   padding-left: 1.2rem;
   font-size: 0.875rem;
@@ -189,7 +209,7 @@
   line-height: 1.55;
 }
 
-.step-bullets li::before {
+.result-card-container .step-bullets li::before {
   content: '';
   position: absolute;
   left: 0;
@@ -203,7 +223,24 @@
 
 /* ── Responsive ────────────────────────────────────── */
 @media (max-width: 700px) {
-  .steps-container {
+  .result-card-container .steps-container {
     grid-template-columns: 1fr;
   }
+}
+
+@media (max-width: 480px) {
+  .result-card-container { border-radius: 1rem; }
+  .result-header { align-items: flex-start; gap: .8rem; padding: 1.15rem; }
+  .result-header .header-icon { font-size: 2.35rem; }
+  .result-header .header-content h2 { font-size: 1.12rem; }
+  .confidence-label { display: block; margin: .5rem 0 0; }
+  .result-body { padding: 1.1rem; }
+  .info-section { margin-bottom: 1.75rem; }
+  .info-section h3, .action-plan-section h3 { font-size: 1.15rem; }
+  .result-card-container .step-card-header { gap: .6rem; padding: .85rem; }
+  .result-card-container .step-badge { width: 48px; height: 50px; }
+  .result-card-container .step-num { font-size: 1.45rem; }
+  .result-card-container .step-title { font-size: .95rem; }
+  .result-card-container .step-icon-wrap { width: 32px; height: 32px; }
+  .result-card-container .step-bullets { padding: .8rem .85rem 1rem; }
 }

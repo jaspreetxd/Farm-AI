@@ -42,10 +42,14 @@
 
 .text-input-wrapper textarea {
   width: 100%;
+  min-width: 0;
+  min-height: 8rem;
+  max-width: 100%;
   padding: 1rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   font-family: inherit;
+  font-size: 1rem;
   background-color: var(--background);
   color: var(--text-main);
   transition: var(--transition);
@@ -147,4 +151,17 @@
 .clear-btn:hover {
   background-color: #ef4444;
   color: white;
+}
+
+@media (max-width: 600px) {
+  .input-form-container { border-radius: 1rem; }
+  .input-body { padding: clamp(.85rem, 4vw, 1.25rem); }
+  .tab-btn { min-height: 48px; padding: .75rem .5rem; font-size: .92rem; }
+  .upload-box { min-height: 190px; padding: 1.5rem 1rem; text-align: center; }
+  .upload-box h3 { font-size: 1.05rem; }
+  .upload-box p { max-width: 100%; overflow-wrap: anywhere; }
+  .form-actions { margin-top: 1rem; }
+  .submit-btn { min-height: 48px; }
+  .preview-container { padding: .75rem; }
+  .image-preview { max-height: 45vh; }
 }

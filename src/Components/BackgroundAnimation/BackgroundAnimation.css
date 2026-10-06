@@ -2,12 +2,17 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
+  height: 100dvh;
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
   background-color: var(--background);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-video { display: none; }
 }
 
 .bg-video {
